@@ -1,0 +1,367 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>playlist: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">cloud-test-task/playlist/controller.go (100.0%)</option>
+				
+				<option value="file1">cloud-test-task/playlist/entities.go (100.0%)</option>
+				
+				<option value="file2">cloud-test-task/playlist/handlers.go (100.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package playlist
+
+import (
+        "fmt"
+        "log"
+)
+
+// запускает работу плейлиста
+func (pl *Playlist) Start() error <span class="cov8" title="1">{
+        if pl.l == nil || pl.playChan == nil || pl.pauseChan == nil || pl.nextChan == nil || pl.prevChan == nil </span><span class="cov8" title="1">{
+                log.Println(ErrorEmptyPlaylistStruct)
+                return ErrorEmptyPlaylistStruct
+        }</span>
+
+        <span class="cov8" title="1">if pl.l.Front() == nil </span><span class="cov8" title="1">{
+                log.Println(ErrorEmptyPlaylist)
+                return ErrorEmptyPlaylist
+        }</span>
+
+        <span class="cov8" title="1">if pl.current == nil </span><span class="cov8" title="1">{
+                pl.current = pl.l.Front()
+        }</span>
+
+        <span class="cov8" title="1">go pl.playlistWorker()
+
+        return nil</span>
+}
+
+// добавляет трек в конец плейлиста
+func (pl *Playlist) AddTrack(track *Track) error <span class="cov8" title="1">{
+        if int(track.duration.Seconds()) &lt; 1 </span><span class="cov8" title="1">{
+                return ErrorNotValidTrackDuration
+        }</span>
+
+        <span class="cov8" title="1">pl.l.PushBack(track)
+
+        return nil</span>
+}
+
+// начинает воспроизведение трека
+func (pl *Playlist) Play() error <span class="cov8" title="1">{
+        if pl.isPlaying </span><span class="cov8" title="1">{
+                log.Println(ErrorAlreadyPlay)
+                return ErrorAlreadyPlay
+        }</span>
+
+        <span class="cov8" title="1">pl.playChan &lt;- struct{}{}
+
+        pl.isPlaying = true
+
+        return nil</span>
+}
+
+// ставит трек на паузу
+func (pl *Playlist) Pause() error <span class="cov8" title="1">{
+        if !pl.isPlaying </span><span class="cov8" title="1">{
+                log.Println(ErrorIsNotPlaying)
+                return ErrorIsNotPlaying
+        }</span>
+
+        <span class="cov8" title="1">pl.pauseChan &lt;- struct{}{}
+
+        pl.isPlaying = false
+        fmt.Println("Pause")
+
+        return nil</span>
+}
+
+// переключает на следующий трек
+func (pl *Playlist) Next() <span class="cov8" title="1">{
+        pl.wgCommand.Add(1)
+        pl.nextChan &lt;- struct{}{}
+        pl.wgCommand.Wait()
+
+        fmt.Println("Next")
+}</span>
+
+// переключает на предыдущий трек
+func (pl *Playlist) Prev() <span class="cov8" title="1">{
+        pl.wgCommand.Add(1)
+        pl.prevChan &lt;- struct{}{}
+        pl.wgCommand.Wait()
+
+        fmt.Println("Prev")
+}</span>
+
+// полностью останавливает работу плейлиста
+func (pl *Playlist) Off() <span class="cov8" title="1">{
+        pl.offPlaylist &lt;- struct{}{}
+
+        fmt.Println("Off")
+}</span>
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package playlist
+
+import (
+        "container/list"
+        "sync"
+        "time"
+)
+
+type Track struct {
+        Name     string
+        duration time.Duration
+
+        currentTime time.Duration
+        quit        chan struct{}
+}
+
+func NewTrack(name string, duration time.Duration) *Track <span class="cov8" title="1">{
+        return &amp;Track{
+                Name:     name,
+                duration: duration,
+                quit:     make(chan struct{}),
+        }
+}</span>
+
+func (track Track) GetCurrentTime() time.Duration <span class="cov8" title="1">{
+        return track.currentTime
+}</span>
+
+type Playlist struct {
+        l       *list.List    // список треков
+        current *list.Element // текущий трек
+
+        isPlaying bool
+
+        ticker *time.Ticker
+
+        playChan  chan struct{}
+        pauseChan chan struct{}
+        nextChan  chan struct{}
+        prevChan  chan struct{}
+
+        offPlaylist chan struct{}
+
+        wgCommand   *sync.WaitGroup
+        wgPlayTrack *sync.WaitGroup
+}
+
+func NewPlaylist() *Playlist <span class="cov8" title="1">{
+        return &amp;Playlist{
+                l:           list.New(),
+                ticker:      time.NewTicker(1 * time.Second),
+                playChan:    make(chan struct{}),
+                pauseChan:   make(chan struct{}),
+                nextChan:    make(chan struct{}),
+                prevChan:    make(chan struct{}),
+                offPlaylist: make(chan struct{}),
+                wgPlayTrack: &amp;sync.WaitGroup{},
+                wgCommand:   &amp;sync.WaitGroup{},
+        }
+}</span>
+
+func (pl *Playlist) IsPlaying() bool <span class="cov8" title="1">{
+        return pl.isPlaying
+}</span>
+
+func (pl *Playlist) GetCurrentTrack() Track <span class="cov8" title="1">{
+        return *pl.current.Value.(*Track)
+}</span>
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package playlist
+
+import (
+        "fmt"
+        "time"
+)
+
+// ожидается запуск этого обработчика в горутине
+func (pl *Playlist) playlistWorker() <span class="cov8" title="1">{
+        for </span><span class="cov8" title="1">{
+                select </span>{
+                case &lt;-pl.offPlaylist:<span class="cov8" title="1">
+                        pl.stopPlayTrack()
+                        return</span>
+                case &lt;-pl.playChan:<span class="cov8" title="1">
+                        pl.playHandler()</span>
+                case &lt;-pl.pauseChan:<span class="cov8" title="1">
+                        pl.pauseHandler()</span>
+                case &lt;-pl.nextChan:<span class="cov8" title="1">
+                        pl.nextHandler()</span>
+                case &lt;-pl.prevChan:<span class="cov8" title="1">
+                        pl.prevHandler()</span>
+                }
+        }
+}
+
+func (pl *Playlist) playHandler() <span class="cov8" title="1">{
+        pl.wgPlayTrack.Add(1)
+        go pl.playTrack()
+}</span>
+
+func (pl *Playlist) pauseHandler() <span class="cov8" title="1">{
+        pl.stopPlayTrack()
+}</span>
+
+func (pl *Playlist) nextHandler() <span class="cov8" title="1">{
+        defer pl.wgCommand.Done()
+        pl.stopPlayTrack()
+        pl.current.Value.(*Track).currentTime = 0
+
+        if pl.current.Next() == nil </span><span class="cov8" title="1">{
+                fmt.Println("This is last track in playlist. Playlist starts from beginning")
+                pl.current = pl.l.Front()
+        }</span> else<span class="cov8" title="1"> {
+                pl.current = pl.current.Next()
+        }</span>
+
+        <span class="cov8" title="1">pl.wgPlayTrack.Add(1)
+        go pl.playTrack()</span>
+}
+
+func (pl *Playlist) prevHandler() <span class="cov8" title="1">{
+        defer pl.wgCommand.Done()
+        pl.stopPlayTrack()
+        pl.current.Value.(*Track).currentTime = 0
+
+        if pl.current.Prev() == nil </span><span class="cov8" title="1">{
+                fmt.Println("This is first track in playlist. Playlist starts from beginning")
+                pl.current = pl.l.Front()
+        }</span> else<span class="cov8" title="1"> {
+                pl.current = pl.current.Prev()
+        }</span>
+
+        <span class="cov8" title="1">pl.wgPlayTrack.Add(1)
+        go pl.playTrack()</span>
+}
+
+// завершение обработчика проигрывания трека playTrack
+func (pl *Playlist) stopPlayTrack() <span class="cov8" title="1">{
+        close(pl.current.Value.(*Track).quit)
+        pl.wgPlayTrack.Wait()
+
+        pl.current.Value.(*Track).quit = make(chan struct{})
+}</span>
+
+// выводит в консоль текущее время трека
+//
+// ожидается запуск этого обработчика в горутине
+func (pl *Playlist) playTrack() <span class="cov8" title="1">{
+        defer pl.wgPlayTrack.Done()
+        fmt.Printf("Now playing: %s\n", pl.current.Value.(*Track).Name)
+        pl.ticker.Reset(1 * time.Second)
+        for </span><span class="cov8" title="1">{
+                select </span>{
+                case &lt;-pl.current.Value.(*Track).quit:<span class="cov8" title="1">
+                        return</span>
+                case &lt;-pl.ticker.C:<span class="cov8" title="1">
+                        pl.current.Value.(*Track).currentTime += 1 * time.Second
+                        fmt.Printf("Time: %d/%d seconds\n", int(pl.current.Value.(*Track).currentTime.Seconds()), int(pl.current.Value.(*Track).duration.Seconds()))
+
+                        if pl.current.Value.(*Track).currentTime &gt;= pl.current.Value.(*Track).duration </span><span class="cov8" title="1">{
+                                go pl.Next()
+                        }</span>
+                }
+        }
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

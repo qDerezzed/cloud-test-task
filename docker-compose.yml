@@ -1,0 +1,22 @@
+version: '3.5'
+
+services:
+  cloud-test-task:
+    build: ./
+    command: ./wait-for-postgres.sh db ./cloud-test-task
+    ports:
+      - 8080:8080
+    depends_on:
+      - db
+    environment:
+      - DB_PASSWORD=password
+
+  db:
+    restart: always
+    image: postgres:alpine3.16
+    environment:
+      - POSTGRES_PASSWORD=password
+    ports:
+      - 5432:5432
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
