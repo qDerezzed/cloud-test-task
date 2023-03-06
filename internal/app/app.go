@@ -1,36 +1,31 @@
-package main
+package app
 
 import (
-	"fmt"
 	"log"
 	"net"
 	"os"
 
-	"cloud-test-task/internal/proto"
-	"cloud-test-task/internal/repository"
-	srv "cloud-test-task/internal/server"
-
+	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 
-	"github.com/joho/godotenv"
-	"github.com/spf13/viper"
+	"cloud-test-task/internal/delivery"
+	"cloud-test-task/internal/usecase"
+	"cloud-test-task/internal/usecase/playlist"
+	"cloud-test-task/internal/usecase/repository"
+	"cloud-test-task/pkg/postgres"
 )
 
-func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
+func Run() {
 	databasePassword := os.Getenv("DB_PASSWORD")
 	if databasePassword == "" {
-		log.Fatal("$DATABASE_URL must be set")
+		log.Fatal("$DB_PASSWORD must be set")
 	}
 
 	if err := initConfig(); err != nil {
 		log.Fatalf("error initializing configs: %s", err.Error())
 	}
 
-	storage := repository.New(repository.Config{
+	pg, err := postgres.New(postgres.Config{
 		Host:     viper.GetString("db.host"),
 		Port:     viper.GetString("db.port"),
 		Username: viper.GetString("db.username"),
@@ -38,26 +33,32 @@ func main() {
 		SSLMode:  viper.GetString("db.sslmode"),
 		Password: databasePassword,
 	})
-
-	err = storage.Open()
 	if err != nil {
-		log.Panic(err)
+		log.Fatalln(err)
 	}
-	defer storage.Close()
+	defer pg.Close()
 
-	server := srv.NewServer(storage)
-	server.Init()
+	playlistUseCase := usecase.New(
+		repository.NewRepository(pg),
+		playlist.NewPlaylist(),
+	)
 
 	grpcSrv := grpc.NewServer()
-	proto.RegisterPlaylistServer(grpcSrv, server)
+	err = delivery.NewPlaylistServerGrpc(grpcSrv, *playlistUseCase)
+	if err != nil {
+		log.Fatalln(err)
+	}
 
 	lis, err := net.Listen("tcp", ":8080")
 	if err != nil {
 		log.Fatalln("cant listet port", err)
 	}
 
-	fmt.Println("starting server at :8080")
-	grpcSrv.Serve(lis)
+	log.Println("starting server at :8080")
+	err = grpcSrv.Serve(lis)
+	if err != nil {
+		log.Fatalln("cant listet port", err)
+	}
 }
 
 func initConfig() error {

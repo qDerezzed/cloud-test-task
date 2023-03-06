@@ -1,4 +1,3 @@
-port: "8080"
 db:
     username: "postgres"
     host: "172.18.0.1"

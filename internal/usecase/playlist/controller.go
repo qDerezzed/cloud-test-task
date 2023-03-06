@@ -1,6 +1,7 @@
 package playlist
 
 import (
+	"cloud-test-task/internal/entities"
 	"fmt"
 	"log"
 )
@@ -27,8 +28,8 @@ func (pl *Playlist) Start() error {
 }
 
 // добавляет трек в конец плейлиста
-func (pl *Playlist) AddTrack(track *Track) error {
-	if int(track.duration.Seconds()) < 1 {
+func (pl *Playlist) AddTrack(track *entities.Track) error {
+	if track.Duration < 1 {
 		return ErrorNotValidTrackDuration
 	}
 
@@ -61,6 +62,7 @@ func (pl *Playlist) Pause() error {
 	pl.pauseChan <- struct{}{}
 
 	pl.isPlaying = false
+
 	fmt.Println("Pause")
 
 	return nil

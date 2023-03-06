@@ -1,6 +1,7 @@
 package playlist
 
 import (
+	"cloud-test-task/internal/entities"
 	"fmt"
 	"time"
 )
@@ -36,7 +37,7 @@ func (pl *Playlist) pauseHandler() {
 func (pl *Playlist) nextHandler() {
 	defer pl.wgCommand.Done()
 	pl.stopPlayTrack()
-	pl.current.Value.(*Track).currentTime = 0
+	pl.current.Value.(*entities.Track).CurrentTime = 0
 
 	if pl.current.Next() == nil {
 		fmt.Println("This is last track in playlist. Playlist starts from beginning")
@@ -52,7 +53,7 @@ func (pl *Playlist) nextHandler() {
 func (pl *Playlist) prevHandler() {
 	defer pl.wgCommand.Done()
 	pl.stopPlayTrack()
-	pl.current.Value.(*Track).currentTime = 0
+	pl.current.Value.(*entities.Track).CurrentTime = 0
 
 	if pl.current.Prev() == nil {
 		fmt.Println("This is first track in playlist. Playlist starts from beginning")
@@ -67,10 +68,10 @@ func (pl *Playlist) prevHandler() {
 
 // завершение обработчика проигрывания трека playTrack
 func (pl *Playlist) stopPlayTrack() {
-	close(pl.current.Value.(*Track).quit)
+	close(pl.endtPlayTrack)
 	pl.wgPlayTrack.Wait()
 
-	pl.current.Value.(*Track).quit = make(chan struct{})
+	pl.endtPlayTrack = make(chan struct{})
 }
 
 // выводит в консоль текущее время трека
@@ -78,17 +79,19 @@ func (pl *Playlist) stopPlayTrack() {
 // ожидается запуск этого обработчика в горутине
 func (pl *Playlist) playTrack() {
 	defer pl.wgPlayTrack.Done()
-	fmt.Printf("Now playing: %s\n", pl.current.Value.(*Track).Name)
+	pl.current.Value.(*entities.Track).IsPlaying = true
+	fmt.Printf("Now playing: %s\n", pl.current.Value.(*entities.Track).Name)
 	pl.ticker.Reset(1 * time.Second)
 	for {
 		select {
-		case <-pl.current.Value.(*Track).quit:
+		case <-pl.endtPlayTrack:
+			pl.current.Value.(*entities.Track).IsPlaying = false
 			return
 		case <-pl.ticker.C:
-			pl.current.Value.(*Track).currentTime += 1 * time.Second
-			fmt.Printf("Time: %d/%d seconds\n", int(pl.current.Value.(*Track).currentTime.Seconds()), int(pl.current.Value.(*Track).duration.Seconds()))
+			pl.current.Value.(*entities.Track).CurrentTime += 1
+			fmt.Printf("Time: %d/%d seconds\n", pl.current.Value.(*entities.Track).CurrentTime, pl.current.Value.(*entities.Track).Duration)
 
-			if pl.current.Value.(*Track).currentTime >= pl.current.Value.(*Track).duration {
+			if pl.current.Value.(*entities.Track).CurrentTime >= pl.current.Value.(*entities.Track).Duration {
 				go pl.Next()
 			}
 		}

@@ -7,7 +7,10 @@ CREATE TABLE playlist
 );
 
 INSERT INTO playlist (track_name, track_duration)
-VALUES 
-('Queen - «Bohemian Rhapsody»', '355'),
-('Joy Division - «Love Will Tear Us Apart»', '205'),
-('The Beatles - «A Day in the Life»', '333');
+VALUES
+('Queen - «Bohemian Rhapsody»', '12'),
+('Joy Division - «Love Will Tear Us Apart»', '15'),
+('The Beatles - «A Day in the Life»', '4');
+-- ('Queen - «Bohemian Rhapsody»', '355'),
+-- ('Joy Division - «Love Will Tear Us Apart»', '205'),
+-- ('The Beatles - «A Day in the Life»', '333');
