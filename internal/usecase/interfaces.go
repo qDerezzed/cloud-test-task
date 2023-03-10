@@ -19,6 +19,7 @@ type (
 		AddTrack(name string, duration int64) (int64, error)
 		DeleteTrack(name string) error
 		UpdateTrack(name string, newName string, newDuration int64) error
+		GetTrack() entities.Track
 	}
 
 	PlaylistRepo interface {

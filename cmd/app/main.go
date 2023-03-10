@@ -1,9 +1,16 @@
 package main
 
 import (
+	"cloud-test-task/config"
 	"cloud-test-task/internal/app"
+	"log"
 )
 
 func main() {
-	app.Run()
+	cfg, err := config.NewConfig()
+	if err != nil {
+		log.Fatalf("Config error: %s", err)
+	}
+
+	app.Run(cfg)
 }

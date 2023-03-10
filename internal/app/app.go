@@ -3,11 +3,10 @@ package app
 import (
 	"log"
 	"net"
-	"os"
 
-	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 
+	"cloud-test-task/config"
 	"cloud-test-task/internal/delivery"
 	"cloud-test-task/internal/usecase"
 	"cloud-test-task/internal/usecase/playlist"
@@ -15,24 +14,8 @@ import (
 	"cloud-test-task/pkg/postgres"
 )
 
-func Run() {
-	databasePassword := os.Getenv("DB_PASSWORD")
-	if databasePassword == "" {
-		log.Fatal("$DB_PASSWORD must be set")
-	}
-
-	if err := initConfig(); err != nil {
-		log.Fatalf("error initializing configs: %s", err.Error())
-	}
-
-	pg, err := postgres.New(postgres.Config{
-		Host:     viper.GetString("db.host"),
-		Port:     viper.GetString("db.port"),
-		Username: viper.GetString("db.username"),
-		DBName:   viper.GetString("db.dbname"),
-		SSLMode:  viper.GetString("db.sslmode"),
-		Password: databasePassword,
-	})
+func Run(cfg *config.Config) {
+	pg, err := postgres.New(*cfg)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -59,10 +42,4 @@ func Run() {
 	if err != nil {
 		log.Fatalln("cant listet port", err)
 	}
-}
-
-func initConfig() error {
-	viper.AddConfigPath("configs")
-	viper.SetConfigName("config")
-	return viper.ReadInConfig()
 }

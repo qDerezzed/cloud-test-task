@@ -4,19 +4,12 @@ import (
 	"context"
 	"fmt"
 
+	"cloud-test-task/config"
+
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
-type Config struct {
-	Host     string
-	Port     string
-	Username string
-	Password string
-	DBName   string
-	SSLMode  string
-}
-
-func New(cfg Config) (*pgxpool.Pool, error) {
+func New(cfg config.Config) (*pgxpool.Pool, error) {
 	databaseURL := fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=%s",
 		cfg.Host, cfg.Port, cfg.Username, cfg.DBName, cfg.Password, cfg.SSLMode)
 

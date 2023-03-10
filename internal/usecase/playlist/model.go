@@ -50,9 +50,9 @@ func (pl *Playlist) GetTrack() entities.Track {
 	return *pl.current.Value.(*entities.Track)
 }
 
-func (pl *Playlist) CreatePlaylist(Tracks []*entities.Track) error {
-	for _, Track := range Tracks {
-		err := pl.AddTrack(entities.NewTrack(Track.Name, Track.Duration))
+func (pl *Playlist) CreatePlaylist(tracks []*entities.Track) error {
+	for _, track := range tracks {
+		err := pl.AddTrack(entities.NewTrack(track.Name, track.Duration))
 		if err != nil {
 			return err
 		}
