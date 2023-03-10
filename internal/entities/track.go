@@ -10,8 +10,9 @@ type Track struct {
 	CurrentTime int
 }
 
-func NewTrack(name string, duration int) *Track {
+func NewTrack(ID int, name string, duration int) *Track {
 	return &Track{
+		ID:       ID,
 		Name:     name,
 		Duration: duration,
 	}

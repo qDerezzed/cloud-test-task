@@ -10,12 +10,12 @@ import (
 
 func TestStartPlaylist(t *testing.T) {
 	pl := Playlist{}
-	assert.Equal(t, ErrorEmptyPlaylistStruct, pl.Start(), "empty playlist struct")
+	assert.Equal(t, entities.ErrorEmptyPlaylistStruct, pl.Start(), "empty playlist struct")
 
 	playlist := NewPlaylist()
-	assert.Equal(t, ErrorEmptyPlaylist, playlist.Start(), "empty playlist")
+	assert.Equal(t, entities.ErrorEmptyPlaylist, playlist.Start(), "empty playlist")
 
-	playlist.AddTrack(entities.NewTrack("abc", 12))
+	playlist.AddTrack(&entities.Track{Name: "abc", Duration: 12})
 	err := playlist.Start()
 	playlist.Off()
 	assert.Nil(t, err, "good off")
@@ -23,7 +23,7 @@ func TestStartPlaylist(t *testing.T) {
 
 func TestPlay(t *testing.T) {
 	playlist := NewPlaylist()
-	playlist.AddTrack(entities.NewTrack("abc", 2))
+	playlist.AddTrack(&entities.Track{Name: "abc", Duration: 2})
 	playlist.Start()
 
 	playlist.Play()
@@ -39,7 +39,7 @@ func TestPlay(t *testing.T) {
 
 func TestPause(t *testing.T) {
 	playlist := NewPlaylist()
-	playlist.AddTrack(entities.NewTrack("abc", 12))
+	playlist.AddTrack(&entities.Track{Name: "abc", Duration: 12})
 	playlist.Start()
 
 	playlist.Pause()
@@ -58,9 +58,9 @@ func TestPause(t *testing.T) {
 func TestNext(t *testing.T) {
 	playlist := NewPlaylist()
 
-	playlist.AddTrack(entities.NewTrack("abc", 3))
-	playlist.AddTrack(entities.NewTrack("qwe", 4))
-	playlist.AddTrack(entities.NewTrack("zxc", 1))
+	playlist.AddTrack(&entities.Track{Name: "abc", Duration: 3})
+	playlist.AddTrack(&entities.Track{Name: "qwe", Duration: 4})
+	playlist.AddTrack(&entities.Track{Name: "zxc", Duration: 1})
 
 	playlist.Start()
 
@@ -79,9 +79,9 @@ func TestNext(t *testing.T) {
 func TestPrev(t *testing.T) {
 	playlist := NewPlaylist()
 
-	playlist.AddTrack(entities.NewTrack("abc", 3))
-	playlist.AddTrack(entities.NewTrack("qwe", 4))
-	playlist.AddTrack(entities.NewTrack("zxc", 3))
+	playlist.AddTrack(&entities.Track{Name: "abc", Duration: 3})
+	playlist.AddTrack(&entities.Track{Name: "qwe", Duration: 4})
+	playlist.AddTrack(&entities.Track{Name: "zxc", Duration: 3})
 
 	playlist.Start()
 
@@ -105,25 +105,25 @@ func TestPrev(t *testing.T) {
 
 func TestErrorAdd(t *testing.T) {
 	playlist := NewPlaylist()
-	err := playlist.AddTrack(entities.NewTrack("abc", 0))
-	assert.Equal(t, ErrorNotValidTrackDuration, err, "track duration is not valid")
+	err := playlist.AddTrack(&entities.Track{Name: "abc", Duration: 0})
+	assert.Equal(t, entities.ErrorNotValidTrackDuration, err, "track duration is not valid")
 }
 
 func TestErrorPlay(t *testing.T) {
 	playlist := NewPlaylist()
-	playlist.AddTrack(entities.NewTrack("abc", 12))
+	playlist.AddTrack(&entities.Track{Name: "abc", Duration: 12})
 	playlist.Start()
 	err := playlist.Play()
 	assert.Nil(t, err, "track is normal playing")
 	err = playlist.Play()
-	assert.Equal(t, ErrorAlreadyPlay, err, "track is already playing")
+	assert.Equal(t, entities.ErrorAlreadyPlay, err, "track is already playing")
 
 	playlist.Off()
 }
 
 func TestErrorPause(t *testing.T) {
 	playlist := NewPlaylist()
-	playlist.AddTrack(entities.NewTrack("abc", 12))
+	playlist.AddTrack(&entities.Track{Name: "abc", Duration: 12})
 	playlist.Start()
 	playlist.Play()
 
@@ -131,7 +131,7 @@ func TestErrorPause(t *testing.T) {
 	assert.Nil(t, err, "normal pause")
 
 	err = playlist.Pause()
-	assert.Equal(t, ErrorIsNotPlaying, err, "track is already pause")
+	assert.Equal(t, entities.ErrorIsNotPlaying, err, "track is already pause")
 
 	playlist.Off()
 }

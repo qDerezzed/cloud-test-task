@@ -60,40 +60,25 @@ func (uc *PlaylistUseCase) Prev() {
 }
 
 func (uc *PlaylistUseCase) AddTrack(name string, duration int64) (int64, error) {
-	id, err := uc.repo.AddTrack(entities.NewTrack(name, int(duration)))
+	id, err := uc.repo.AddTrack(&entities.Track{Name: name, Duration: int(duration)})
 	if err != nil {
 		return id, err
 	}
 
-	err = uc.playlist.AddTrack(entities.NewTrack(name, int(duration)))
+	err = uc.playlist.AddTrack(entities.NewTrack(int(id), name, int(duration)))
 	if err != nil {
 		return id, err
 	}
 	return id, nil
 }
 
-func (uc *PlaylistUseCase) DeleteTrack(name string) error {
-	err := uc.playlist.DeleteTrack(name)
+func (uc *PlaylistUseCase) DeleteTrack(ID int64) error {
+	err := uc.playlist.DeleteTrack(int(ID))
 	if err != nil {
 		return err
 	}
 
-	err = uc.repo.DeleteTrack(name)
-	if err != nil {
-		return err
-	}
-
-	return err
-}
-
-func (uc *PlaylistUseCase) UpdateTrack(name string, newName string, newDuration int64) error {
-	track := entities.NewTrack(newName, int(newDuration))
-	err := uc.playlist.UpdateTrack(name, track)
-	if err != nil {
-		return err
-	}
-
-	err = uc.repo.UpdateTrack(name, newName, newDuration)
+	err = uc.repo.DeleteTrack(int(ID))
 	if err != nil {
 		return err
 	}
@@ -101,6 +86,31 @@ func (uc *PlaylistUseCase) UpdateTrack(name string, newName string, newDuration 
 	return err
 }
 
+func (uc *PlaylistUseCase) UpdateTrack(ID int64, newName string, newDuration int64) error {
+	track := entities.NewTrack(int(ID), newName, int(newDuration))
+	err := uc.playlist.UpdateTrack(int(ID), track)
+	if err != nil {
+		return err
+	}
+
+	err = uc.repo.UpdateTrack(ID, newName, newDuration)
+	if err != nil {
+		return err
+	}
+
+	return err
+}
+
+// получить трек, который сейчас играет
 func (uc *PlaylistUseCase) GetTrack() entities.Track {
 	return uc.playlist.GetTrack()
+}
+
+func (uc *PlaylistUseCase) GetPlaylist() ([]*entities.Track, error) {
+	tracks, err := uc.repo.GetAllTracks()
+	if err != nil {
+		return nil, err
+	}
+
+	return tracks, err
 }

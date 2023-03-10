@@ -9,9 +9,9 @@ import (
 func main() {
 	playlist := pl.NewPlaylist()
 
-	playlist.AddTrack(entities.NewTrack("abc", 12))
-	playlist.AddTrack(entities.NewTrack("qwe", 15))
-	playlist.AddTrack(entities.NewTrack("zxc", 4))
+	playlist.AddTrack(&entities.Track{Name: "abc", Duration: 12})
+	playlist.AddTrack(&entities.Track{Name: "qwe", Duration: 15})
+	playlist.AddTrack(&entities.Track{Name: "zxc", Duration: 4})
 
 	playlist.Start()
 	playlist.Play()

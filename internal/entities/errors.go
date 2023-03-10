@@ -1,4 +1,4 @@
-package playlist
+package entities
 
 import "errors"
 
@@ -10,4 +10,7 @@ var (
 	ErrorIsNotPlaying = errors.New("Track is not playing")
 
 	ErrorNotValidTrackDuration = errors.New("Track duration is not valid")
+
+	ErrorDelTrackNotFound = errors.New("track being deleted was not found")
+	ErrorUpdTrackNotFound = errors.New("track being updated was not found")
 )

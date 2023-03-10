@@ -22,10 +22,11 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type PlaylistClient interface {
-	AddTrack(ctx context.Context, in *Track, opts ...grpc.CallOption) (*TrackID, error)
+	AddTrack(ctx context.Context, in *AddTrackRequest, opts ...grpc.CallOption) (*TrackID, error)
 	GetTrack(ctx context.Context, in *Nothing, opts ...grpc.CallOption) (*Track, error)
 	UpdateTrack(ctx context.Context, in *UpdateTrackRequest, opts ...grpc.CallOption) (*Nothing, error)
-	DeleteTrack(ctx context.Context, in *Track, opts ...grpc.CallOption) (*Nothing, error)
+	DeleteTrack(ctx context.Context, in *TrackID, opts ...grpc.CallOption) (*Nothing, error)
+	GetPlaylist(ctx context.Context, in *Nothing, opts ...grpc.CallOption) (*TrackList, error)
 	Play(ctx context.Context, in *Nothing, opts ...grpc.CallOption) (*Nothing, error)
 	Pause(ctx context.Context, in *Nothing, opts ...grpc.CallOption) (*Nothing, error)
 	Next(ctx context.Context, in *Nothing, opts ...grpc.CallOption) (*Nothing, error)
@@ -42,7 +43,7 @@ func NewPlaylistClient(cc grpc.ClientConnInterface) PlaylistClient {
 	return &playlistClient{cc}
 }
 
-func (c *playlistClient) AddTrack(ctx context.Context, in *Track, opts ...grpc.CallOption) (*TrackID, error) {
+func (c *playlistClient) AddTrack(ctx context.Context, in *AddTrackRequest, opts ...grpc.CallOption) (*TrackID, error) {
 	out := new(TrackID)
 	err := c.cc.Invoke(ctx, "/playlist_grpc.Playlist/AddTrack", in, out, opts...)
 	if err != nil {
@@ -69,9 +70,18 @@ func (c *playlistClient) UpdateTrack(ctx context.Context, in *UpdateTrackRequest
 	return out, nil
 }
 
-func (c *playlistClient) DeleteTrack(ctx context.Context, in *Track, opts ...grpc.CallOption) (*Nothing, error) {
+func (c *playlistClient) DeleteTrack(ctx context.Context, in *TrackID, opts ...grpc.CallOption) (*Nothing, error) {
 	out := new(Nothing)
 	err := c.cc.Invoke(ctx, "/playlist_grpc.Playlist/DeleteTrack", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *playlistClient) GetPlaylist(ctx context.Context, in *Nothing, opts ...grpc.CallOption) (*TrackList, error) {
+	out := new(TrackList)
+	err := c.cc.Invoke(ctx, "/playlist_grpc.Playlist/GetPlaylist", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -136,10 +146,11 @@ func (c *playlistClient) Off(ctx context.Context, in *Nothing, opts ...grpc.Call
 // All implementations must embed UnimplementedPlaylistServer
 // for forward compatibility
 type PlaylistServer interface {
-	AddTrack(context.Context, *Track) (*TrackID, error)
+	AddTrack(context.Context, *AddTrackRequest) (*TrackID, error)
 	GetTrack(context.Context, *Nothing) (*Track, error)
 	UpdateTrack(context.Context, *UpdateTrackRequest) (*Nothing, error)
-	DeleteTrack(context.Context, *Track) (*Nothing, error)
+	DeleteTrack(context.Context, *TrackID) (*Nothing, error)
+	GetPlaylist(context.Context, *Nothing) (*TrackList, error)
 	Play(context.Context, *Nothing) (*Nothing, error)
 	Pause(context.Context, *Nothing) (*Nothing, error)
 	Next(context.Context, *Nothing) (*Nothing, error)
@@ -153,7 +164,7 @@ type PlaylistServer interface {
 type UnimplementedPlaylistServer struct {
 }
 
-func (UnimplementedPlaylistServer) AddTrack(context.Context, *Track) (*TrackID, error) {
+func (UnimplementedPlaylistServer) AddTrack(context.Context, *AddTrackRequest) (*TrackID, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddTrack not implemented")
 }
 func (UnimplementedPlaylistServer) GetTrack(context.Context, *Nothing) (*Track, error) {
@@ -162,8 +173,11 @@ func (UnimplementedPlaylistServer) GetTrack(context.Context, *Nothing) (*Track, 
 func (UnimplementedPlaylistServer) UpdateTrack(context.Context, *UpdateTrackRequest) (*Nothing, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateTrack not implemented")
 }
-func (UnimplementedPlaylistServer) DeleteTrack(context.Context, *Track) (*Nothing, error) {
+func (UnimplementedPlaylistServer) DeleteTrack(context.Context, *TrackID) (*Nothing, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteTrack not implemented")
+}
+func (UnimplementedPlaylistServer) GetPlaylist(context.Context, *Nothing) (*TrackList, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPlaylist not implemented")
 }
 func (UnimplementedPlaylistServer) Play(context.Context, *Nothing) (*Nothing, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Play not implemented")
@@ -197,7 +211,7 @@ func RegisterPlaylistServer(s grpc.ServiceRegistrar, srv PlaylistServer) {
 }
 
 func _Playlist_AddTrack_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Track)
+	in := new(AddTrackRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -209,7 +223,7 @@ func _Playlist_AddTrack_Handler(srv interface{}, ctx context.Context, dec func(i
 		FullMethod: "/playlist_grpc.Playlist/AddTrack",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PlaylistServer).AddTrack(ctx, req.(*Track))
+		return srv.(PlaylistServer).AddTrack(ctx, req.(*AddTrackRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -251,7 +265,7 @@ func _Playlist_UpdateTrack_Handler(srv interface{}, ctx context.Context, dec fun
 }
 
 func _Playlist_DeleteTrack_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Track)
+	in := new(TrackID)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -263,7 +277,25 @@ func _Playlist_DeleteTrack_Handler(srv interface{}, ctx context.Context, dec fun
 		FullMethod: "/playlist_grpc.Playlist/DeleteTrack",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PlaylistServer).DeleteTrack(ctx, req.(*Track))
+		return srv.(PlaylistServer).DeleteTrack(ctx, req.(*TrackID))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Playlist_GetPlaylist_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Nothing)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PlaylistServer).GetPlaylist(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/playlist_grpc.Playlist/GetPlaylist",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PlaylistServer).GetPlaylist(ctx, req.(*Nothing))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -398,6 +430,10 @@ var Playlist_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteTrack",
 			Handler:    _Playlist_DeleteTrack_Handler,
+		},
+		{
+			MethodName: "GetPlaylist",
+			Handler:    _Playlist_GetPlaylist_Handler,
 		},
 		{
 			MethodName: "Play",

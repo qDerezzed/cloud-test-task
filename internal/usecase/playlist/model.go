@@ -2,8 +2,6 @@ package playlist
 
 import (
 	"container/list"
-	"errors"
-	"fmt"
 	"sync"
 	"time"
 
@@ -52,7 +50,7 @@ func (pl *Playlist) GetTrack() entities.Track {
 
 func (pl *Playlist) CreatePlaylist(tracks []*entities.Track) error {
 	for _, track := range tracks {
-		err := pl.AddTrack(entities.NewTrack(track.Name, track.Duration))
+		err := pl.AddTrack(track)
 		if err != nil {
 			return err
 		}
@@ -60,30 +58,29 @@ func (pl *Playlist) CreatePlaylist(tracks []*entities.Track) error {
 	return nil
 }
 
-func (pl *Playlist) DeleteTrack(name string) error {
+func (pl *Playlist) DeleteTrack(ID int) error {
 	var next *list.Element
 	for e := pl.l.Front(); e != nil; e = next {
-		if e.Value.(*entities.Track).Name == name {
+		if e.Value.(*entities.Track).ID == ID {
 			if e.Value.(*entities.Track).IsPlaying {
-				return errors.New("this Track is playing")
+				return entities.ErrorAlreadyPlay
 			}
 			pl.l.Remove(e)
 			return nil
 		}
 		next = e.Next()
 	}
-	return errors.New("Track being deleted was not found")
+	return entities.ErrorDelTrackNotFound
 }
 
-func (pl *Playlist) UpdateTrack(name string, track *entities.Track) error {
+func (pl *Playlist) UpdateTrack(ID int, track *entities.Track) error {
 	var next *list.Element
 	for e := pl.l.Front(); e != nil; e = next {
-		if e.Value.(*entities.Track).Name == name {
+		if e.Value.(*entities.Track).ID == ID {
 			if e.Value.(*entities.Track).IsPlaying {
-				return errors.New("this Track is playing")
+				return entities.ErrorAlreadyPlay
 			}
 
-			fmt.Println(track.Name)
 			e.Value.(*entities.Track).Name = track.Name
 			e.Value.(*entities.Track).Duration = track.Duration
 
@@ -91,5 +88,5 @@ func (pl *Playlist) UpdateTrack(name string, track *entities.Track) error {
 		}
 		next = e.Next()
 	}
-	return errors.New("Track being updated was not found")
+	return entities.ErrorUpdTrackNotFound
 }

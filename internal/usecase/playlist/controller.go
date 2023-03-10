@@ -9,13 +9,13 @@ import (
 // запускает работу плейлиста
 func (pl *Playlist) Start() error {
 	if pl.l == nil || pl.playChan == nil || pl.pauseChan == nil || pl.nextChan == nil || pl.prevChan == nil {
-		log.Println(ErrorEmptyPlaylistStruct)
-		return ErrorEmptyPlaylistStruct
+		log.Println(entities.ErrorEmptyPlaylistStruct)
+		return entities.ErrorEmptyPlaylistStruct
 	}
 
 	if pl.l.Front() == nil {
-		log.Println(ErrorEmptyPlaylist)
-		return ErrorEmptyPlaylist
+		log.Println(entities.ErrorEmptyPlaylist)
+		return entities.ErrorEmptyPlaylist
 	}
 
 	if pl.current == nil {
@@ -30,7 +30,7 @@ func (pl *Playlist) Start() error {
 // добавляет трек в конец плейлиста
 func (pl *Playlist) AddTrack(track *entities.Track) error {
 	if track.Duration < 1 {
-		return ErrorNotValidTrackDuration
+		return entities.ErrorNotValidTrackDuration
 	}
 
 	pl.l.PushBack(track)
@@ -41,8 +41,8 @@ func (pl *Playlist) AddTrack(track *entities.Track) error {
 // начинает воспроизведение трека
 func (pl *Playlist) Play() error {
 	if pl.isPlaying {
-		log.Println(ErrorAlreadyPlay)
-		return ErrorAlreadyPlay
+		log.Println(entities.ErrorAlreadyPlay)
+		return entities.ErrorAlreadyPlay
 	}
 
 	pl.playChan <- struct{}{}
@@ -55,8 +55,8 @@ func (pl *Playlist) Play() error {
 // ставит трек на паузу
 func (pl *Playlist) Pause() error {
 	if !pl.isPlaying {
-		log.Println(ErrorIsNotPlaying)
-		return ErrorIsNotPlaying
+		log.Println(entities.ErrorIsNotPlaying)
+		return entities.ErrorIsNotPlaying
 	}
 
 	pl.pauseChan <- struct{}{}

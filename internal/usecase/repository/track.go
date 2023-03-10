@@ -28,50 +28,27 @@ func (db *TrackPostgres) AddTrack(track *entities.Track) (int64, error) {
 	return trackID, err
 }
 
-// func (db *TrackPostgres) GetTrack(trackID int64) (string, int64, error) {
-// 	var name string
-// 	var duration int64
-// 	err := db.dbPool.QueryRow(
-// 		context.Background(),
-// 		"SELECT track_name, track_duration FROM playlist WHERE track_id = $1;",
-// 		trackID).Scan(&name)
-
-// 	return name, duration, err
-// }
-
-// func (db *TrackPostgres) UpdateTrack(name string, duration int64, trackID int64) error {
-// 	_, err := db.dbPool.Exec(context.Background(),
-// 		`UPDATE playlist SET track_name = $1 AND track_duration = $2 WHERE track_id = $3;`,
-// 		name, duration, trackID)
-// 	return err
-// }
-
-// func (db *TrackPostgres) DeleteTrack(trackID int) error {
-// 	_, err := db.dbPool.Exec(context.Background(),
-// 		`DELETE FROM playlist WHERE track_id = $1;`, trackID)
-// 	return err
-// }
-
-func (db *TrackPostgres) GetTrack(name string) (string, int64, error) {
+func (db *TrackPostgres) GetTrack(trackID int64) (string, int64, error) {
+	var name string
 	var duration int64
 	err := db.dbPool.QueryRow(
 		context.Background(),
-		"SELECT track_duration FROM playlist WHERE track_name = $1;",
-		name).Scan(&duration)
+		"SELECT track_name, track_duration FROM playlist WHERE track_id = $1;",
+		trackID).Scan(&name, &duration)
 
 	return name, duration, err
 }
 
-func (db *TrackPostgres) UpdateTrack(name string, newName string, newDuration int64) error {
+func (db *TrackPostgres) UpdateTrack(trackID int64, name string, duration int64) error {
 	_, err := db.dbPool.Exec(context.Background(),
-		`UPDATE playlist SET track_name = $1, track_duration = $2 WHERE track_name = $3;`,
-		newName, newDuration, name)
+		`UPDATE playlist SET track_name = $1, track_duration = $2 WHERE track_id = $3;`,
+		name, duration, trackID)
 	return err
 }
 
-func (db *TrackPostgres) DeleteTrack(name string) error {
+func (db *TrackPostgres) DeleteTrack(trackID int) error {
 	_, err := db.dbPool.Exec(context.Background(),
-		`DELETE FROM playlist WHERE track_name = $1;`, name)
+		`DELETE FROM playlist WHERE track_id = $1;`, trackID)
 	return err
 }
 
@@ -80,3 +57,4 @@ func (db *TrackPostgres) GetAllTracks() ([]*entities.Track, error) {
 	err := pgxscan.Select(context.Background(), db.dbPool, &tracks, "SELECT * FROM playlist")
 	return tracks, err
 }
+

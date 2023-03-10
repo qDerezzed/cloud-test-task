@@ -8,8 +8,9 @@ import (
 
 type Track interface {
 	AddTrack(track *entities.Track) (int64, error)
-	UpdateTrack(name string, newName string, newDuration int64) error
-	DeleteTrack(name string) error
+	GetTrack(trackID int64) (string, int64, error)
+	UpdateTrack(trackID int64, name string, duration int64) error
+	DeleteTrack(trackID int) error
 	GetAllTracks() ([]*entities.Track, error)
 }
 

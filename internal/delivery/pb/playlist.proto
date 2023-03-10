@@ -5,30 +5,43 @@ option go_package = "./;pb";
 
 package playlist_grpc;
 
+message Nothing {
+  bool dummy = 1;
+}
+
 message TrackID {
   int64 ID = 1;
 }
 
 message Track {
+  int64 ID = 1;
+  string name = 2;
+  int64 duration = 3;
+}
+
+message TrackList{
+  repeated Track playlist = 1;
+}
+
+message AddTrackRequest {
   string name = 1;
   int64 duration = 2;
 }
 
-message Nothing {
-  bool dummy = 1;
-}
-
 message UpdateTrackRequest {
-  string name = 1;
-  Track track = 2;
+  int64 ID = 1;
+  string newName = 2;
+  int64 newDuration = 3;
 }
 
-// grpc-сервис проверки авторизации
+// grpc-сервис плейлиста
 service Playlist {
-    rpc AddTrack (Track) returns (TrackID) {} // Create
+    rpc AddTrack (AddTrackRequest) returns (TrackID) {} // Create
     rpc GetTrack (Nothing) returns (Track) {} // Read
     rpc UpdateTrack (UpdateTrackRequest) returns (Nothing) {}
-    rpc DeleteTrack (Track) returns (Nothing) {}
+    rpc DeleteTrack (TrackID) returns (Nothing) {}
+
+    rpc GetPlaylist (Nothing) returns (TrackList) {}
 
     rpc Play(Nothing) returns (Nothing);
     rpc Pause(Nothing) returns (Nothing);

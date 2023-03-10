@@ -2,6 +2,7 @@ package config
 
 import (
 	"log"
+	"os"
 
 	"github.com/spf13/viper"
 )
@@ -17,11 +18,10 @@ type Config struct {
 
 // NewConfig returns app config.
 func NewConfig() (*Config, error) {
-	// databasePassword := os.Getenv("DB_PASSWORD")
-	// if databasePassword == "" {
-	// 	log.Fatal("$DB_PASSWORD must be set")
-	// }
-	databasePassword := "password"
+	databasePassword := os.Getenv("DB_PASSWORD")
+	if databasePassword == "" {
+		log.Fatal("$DB_PASSWORD must be set")
+	}
 
 	if err := initConfig(); err != nil {
 		log.Fatalf("error initializing configs: %s", err.Error())
